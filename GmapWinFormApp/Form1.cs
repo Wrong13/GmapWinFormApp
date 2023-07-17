@@ -41,8 +41,6 @@ namespace GmapWinFormApp
             gMapControl1.MouseDown += _gMapControl_MouseDown;
 
             gMapControl1.Overlays.Add(GetOverlayMarkers("test"));
-
-
         }
         private void Form1_ResizeEnd(object sender, EventArgs e)
         {
