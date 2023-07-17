@@ -85,15 +85,14 @@ namespace GmapWinFormApp
 
         private GMapOverlay GetOverlayMarkers(string name, GMarkerGoogleType gMarkerGoogleType = GMarkerGoogleType.red)
         {
-
-            GMapOverlay gMapMarkers = new GMapOverlay(name);// создание именованного слоя 
+            GMapOverlay gMapMarkers = new GMapOverlay(name);
 
             string connectionString = @"Data Source=DESKTOP-SN00NCD\SQLEXPRESS;Initial Catalog=gMapdb;Integrated Security=True";
             string sqlProc = "sp_GetMarks";
 
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
-                connection.OpenAsync();
+                connection.Open();
                 SqlCommand command = new SqlCommand(sqlProc, connection);
                 var reader = command.ExecuteReader();
                 if (reader.HasRows)
@@ -114,8 +113,7 @@ namespace GmapWinFormApp
             }
             return gMapMarkers;
         }
-
-
+            
         // Передвижение маркеров
         private void _gMapControl_MouseDown(object sender, MouseEventArgs e)
         {
