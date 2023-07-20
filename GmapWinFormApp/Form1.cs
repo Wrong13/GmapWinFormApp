@@ -64,23 +64,13 @@ namespace GmapWinFormApp
         }
 
         // Асинхронный метод для обновления координат маркера в базе данных
-        private async Task UpdateMarkerCoordinatesAsync(GMapMarker marker)
+        private async Task UpdateMarkerCoordinatesAsync(GMapMarker marker, int markId)
         {
             string lat = marker.Position.Lat.ToString().Replace(',', '.');
             string lon = marker.Position.Lng.ToString().Replace(',', '.');
-            string sqlProc = $"declare @Id int, @lat float, @lon float;\r\n\r\nset @Id = {marker.ToolTipText}\r\nset @lat = {lat}\r\nset @lon = {lon}\r\n\r\nexec sp_UpdateMark @Id, @lat, @lon";
+            string sqlProc = $"declare @Id int, @lat float, @lon float;\r\n\r\nset @Id = {markId}\r\nset @lat = {lat}\r\nset @lon = {lon}\r\n\r\nexec sp_UpdateMark @Id, @lat, @lon";
             await ExecuteSqlAsync(sqlProc);
         }
-
-        private GMapMarker GetMarker(Mark mark, GMarkerGoogleType gMarkerGoogleType = GMarkerGoogleType.red)
-        {
-            GMarkerGoogle mapMarker = new GMarkerGoogle(new GMap.NET.PointLatLng(mark.lat, mark.lon), gMarkerGoogleType); //широта, долгота, тип маркера
-            mapMarker.ToolTip = new GMap.NET.WindowsForms.ToolTips.GMapRoundedToolTip(mapMarker);
-            mapMarker.ToolTipText = mark.Id.ToString(); 
-            mapMarker.ToolTipMode = MarkerTooltipMode.Never; 
-            return mapMarker;
-        }
-
         private GMapOverlay GetOverlayMarkers(string name, GMarkerGoogleType gMarkerGoogleType = GMarkerGoogleType.red)
         {
             GMapOverlay gMapMarkers = new GMapOverlay(name);
@@ -97,13 +87,9 @@ namespace GmapWinFormApp
                 {
                     while (reader.Read())
                     {
-                        Mark mk = new Mark
-                        {
-                            Id = reader.GetInt32(0),
-                            lat = reader.GetDouble(1),
-                            lon = reader.GetDouble(2)
-                        };
-                        gMapMarkers.Markers.Add(GetMarker(mk));
+                        GMarkerGoogle marker = new GMarkerGoogle(new PointLatLng(reader.GetDouble(1),reader.GetDouble(2)),GMarkerGoogleType.orange);
+                        marker.Tag = reader.GetInt32(0);
+                        gMapMarkers.Markers.Add(marker);
                     }
                 }
                 reader.Close();
@@ -128,9 +114,10 @@ namespace GmapWinFormApp
 
             //переводим координаты курсора мыши в долготу и широту на карте
             var latlng = gMapControl1.FromLocalToLatLng(e.X, e.Y);
+            int markerId = (int)_selectedMarker.Tag;
             //присваиваем новую позицию для маркера
             _selectedMarker.Position = latlng;
-            await UpdateMarkerCoordinatesAsync(_selectedMarker);
+            await UpdateMarkerCoordinatesAsync(_selectedMarker,markerId);
             _selectedMarker = null;
         }
     }
